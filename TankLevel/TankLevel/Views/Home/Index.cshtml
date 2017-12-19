@@ -1,0 +1,106 @@
+﻿@using TankLevel.Models
+
+<div id="CurrentStatus" class="alert alert-success" role="alert">
+    @ViewBag.LastValue % of level at @ViewBag.LastHour Hour.
+</div>
+
+<div>
+    @(Html.Kendo().Chart<ChartData>()
+                            .Name("TankLevelChart")
+                            .Title("Tank Level")
+                            .DataSource(ds => ds
+                                .Read(r => r.Action("GetChartData1", "Home").Data("getHourFilter"))
+                            )
+                            .SeriesDefaults(sd => sd.Line().Style(ChartLineStyle.Normal))
+                            .Series(series =>
+                            {
+                                series.Line(s => s.Value).Name("Level").CategoryField("Category");
+                            })
+                            .ValueAxis(va => va.Numeric().Labels(l => l.Format("{0}%")))
+                            .CategoryAxis(axis => axis
+                                .Labels(labels => labels.Rotation(-90))
+                                .Crosshair(c => c.Visible(true))
+                                .Date()
+                                .BaseUnit(ChartAxisBaseUnit.Hours)
+                            )
+                            .Tooltip(tooltip => tooltip
+                                .Visible(true)
+                                .Shared(true)
+                                .Format("{0:N0}")
+                            )
+    )
+</div>
+
+<div>
+    <button id="filter12hour">12 Hours</button>
+    <button id="filter24hour">24 Hours</button>
+    <button id="filter48hour">48 Hours</button>
+</div>
+
+<script>
+
+    var filter12 = document.getElementById('filter12hour');
+    var filter24 = document.getElementById('filter24hour');
+    var filter48 = document.getElementById('filter48hour');
+    var currentstatus = document.getElementById('CurrentStatus');
+    var filter = { hours: 48 };
+    var lastvalue = @(ViewBag.LastValue );
+    var minlevel = 80;
+    var maxlevel = 90;
+
+    filter12.addEventListener("click", (event) => {
+        event.preventDefault();
+        //console.log("Filter 12 hours");
+        setHourFilter(12);
+    });
+    filter24.addEventListener("click", (event) => {
+        event.preventDefault();
+        //console.log("Filter 24 hours");
+        setHourFilter(24);
+    });
+    filter48.addEventListener("click", (event) => {
+        event.preventDefault();
+        //console.log("Filter 48 hours");
+        setHourFilter(48);
+    });
+
+    function getHourFilter() {
+        //console.log("getHoursFilter");
+        //console.log("Filter is: ", filter);
+        if (lastvalue < minlevel) {
+            currentstatus.classList.remove('alert-success');
+            currentstatus.classList.remove('alert-warning');
+            currentstatus.classList.remove('alert-danger');
+            currentstatus.classList.add('alert-success')
+        }
+        if (lastvalue >= minlevel && lastvalue < maxlevel) {
+            currentstatus.classList.remove('alert-success');
+            currentstatus.classList.remove('alert-warning');
+            currentstatus.classList.remove('alert-danger');
+            currentstatus.classList.add('alert-warning')
+        }
+        if (lastvalue >= maxlevel) {
+            currentstatus.classList.remove('alert-success');
+            currentstatus.classList.remove('alert-warning');
+            currentstatus.classList.remove('alert-danger');
+            currentstatus.classList.add('alert-danger')
+        }
+        return filter;
+    }
+
+    function setHourFilter(hours) {
+        filter = {
+            hours: hours
+        };
+
+        //console.log("setHoursFilter for: " + hours);
+        //console.log("Filter is: ", filter);
+
+        var tanklevelchart = $("#TankLevelChart").data("kendoChart");
+        //Console.log(tanklevelchart);
+        //console.log(tanklevelchart.dataSource);
+        tanklevelchart.dataSource.read();
+    }
+
+</script>
+
