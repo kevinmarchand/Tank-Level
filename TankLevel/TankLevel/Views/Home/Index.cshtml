@@ -1,7 +1,31 @@
 ﻿@using TankLevel.Models
 
-<div id="CurrentStatus" class="alert alert-success" role="alert">
-    @ViewBag.LastValue % of level at @ViewBag.LastHour Hour.
+<div class="row">
+
+    @* Current Status Content *@
+    <div class="col-md-6">
+        <div id="PanelStatus" class="panel panel-success">
+            <div class="panel-heading">
+                <h3 class="panel-title">Current Status</h3>
+            </div> 
+            <div class="panel-body">
+                Level at @ViewBag.LastValue% at @ViewBag.LastHour.
+            </div> 
+        </div>
+    </div>
+
+    @* Prediction Content *@
+    <div class="col-md-6">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <h3 class="panel-title">Prediction</h3>
+            </div>
+            <div class="panel-body">
+                Level at 100% at @ViewBag.Evaluate with a fit of @ViewBag.Fit%.
+            </div>
+        </div>
+    </div>
+
 </div>
 
 <div>
@@ -28,6 +52,11 @@
                                 .Shared(true)
                                 .Format("{0:N0}")
                             )
+                            .Legend(legend =>
+                            {
+                                legend.Position(ChartLegendPosition.Bottom);
+                                legend.Visible(false);
+                            })
     )
 </div>
 
@@ -42,7 +71,7 @@
     var filter12 = document.getElementById('filter12hour');
     var filter24 = document.getElementById('filter24hour');
     var filter48 = document.getElementById('filter48hour');
-    var currentstatus = document.getElementById('CurrentStatus');
+    var panelstatus = document.getElementById('PanelStatus');
     var filter = { hours: 48 };
     var lastvalue = @(ViewBag.LastValue );
     var minlevel = 80;
@@ -68,22 +97,22 @@
         //console.log("getHoursFilter");
         //console.log("Filter is: ", filter);
         if (lastvalue < minlevel) {
-            currentstatus.classList.remove('alert-success');
-            currentstatus.classList.remove('alert-warning');
-            currentstatus.classList.remove('alert-danger');
-            currentstatus.classList.add('alert-success')
+            panelstatus.classList.remove('panel-success');
+            panelstatus.classList.remove('panel-warning');
+            panelstatus.classList.remove('panel-danger');
+            panelstatus.classList.add('panel-success');
         }
         if (lastvalue >= minlevel && lastvalue < maxlevel) {
-            currentstatus.classList.remove('alert-success');
-            currentstatus.classList.remove('alert-warning');
-            currentstatus.classList.remove('alert-danger');
-            currentstatus.classList.add('alert-warning')
+            panelstatus.classList.remove('panel-success');
+            panelstatus.classList.remove('panel-warning');
+            panelstatus.classList.remove('panel-danger');
+            panelstatus.classList.add('panel-warning');
         }
         if (lastvalue >= maxlevel) {
-            currentstatus.classList.remove('alert-success');
-            currentstatus.classList.remove('alert-warning');
-            currentstatus.classList.remove('alert-danger');
-            currentstatus.classList.add('alert-danger')
+            panelstatus.classList.remove('panel-success');
+            panelstatus.classList.remove('panel-warning');
+            panelstatus.classList.remove('panel-danger');
+            panelstatus.classList.add('panel-danger');
         }
         return filter;
     }

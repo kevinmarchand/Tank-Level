@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using MathNet;
+using MathNet.Numerics;
 
 namespace TankLevel.Models
 {
@@ -10,6 +12,8 @@ namespace TankLevel.Models
         private List<ChartData> repositoryData1;
         private List<ChartData> repositoryData2;
         private List<ChartData> repositoryData3;
+        private Tuple<double, double> f;
+        private double goodnessFit;
 
         public ChartRepository()
         {
@@ -19,6 +23,8 @@ namespace TankLevel.Models
         public List<ChartData> GetData1 { get { return repositoryData1; } }
         public List<ChartData> GetData2 { get { return repositoryData2; } }
         public List<ChartData> GetData3 { get { return repositoryData3; } }
+        public Tuple<double,double> Function { get { return f; } }
+        public double GoodnessFit { get { return goodnessFit; } }
 
         private void GenerateData()
         {
@@ -177,9 +183,63 @@ namespace TankLevel.Models
             };
         }
 
-        public void FindLowestIndexReverse()
+        public void FindLowestIndexReverse(List<ChartData> data)
         {
+            // Find the lowest value in the list
+            int storeIndex = data.Count - 1;
+            int storedata = data[storeIndex].Value;
 
+            for (int i = data.Count - 2; i >= 0; i--)
+            {
+                if (storedata > data[i].Value)
+                {
+                    storeIndex = i;
+                    storedata = data[i].Value;
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            // Convert the list from the lowest value index to the last value
+            // to a array of double
+            List<double> xlist = new List<double>();
+            List<double> ylist = new List<double>();
+            double[] xdata;
+            double[] ydata;
+
+            for (int i = storeIndex; i < data.Count; i++)
+            {
+                xlist.Add(i - storeIndex);
+                ylist.Add(Convert.ToDouble(data[i].Value));
+            }
+
+            xdata = xlist.ToArray<double>();
+            ydata = ylist.ToArray<double>();
+
+            // Linear regression
+            if (xdata.Count() >= 2 && ydata.Count() >= 2)
+            {
+                f = Fit.Line(xdata, ydata);
+                goodnessFit = GoodnessOfFit.RSquared(xdata.Select(x => f.Item1 + f.Item2 * x), ydata); // == 1.0
+            }
+        }
+
+        public DateTime EvaluateFunctionAt(double x, List<ChartData> data)
+        {
+            if (f.Item2 != 0)
+            {
+                DateTime lastDate = data[data.Count - 1].Category;
+                int lastHour = lastDate.Hour;
+                double predictedHour = ((x - f.Item1) / f.Item2);
+                DateTime predictedDate = lastDate.AddHours(predictedHour-lastHour);
+                return predictedDate;
+            }
+            else
+            {
+                throw new DivideByZeroException();
+            }
         }
     }
 }

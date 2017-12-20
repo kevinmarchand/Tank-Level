@@ -13,6 +13,9 @@ namespace TankLevel.Controllers
 
         public ActionResult Index()
         {
+            repo.FindLowestIndexReverse(repo.GetData1);
+            ViewBag.Evaluate = repo.EvaluateFunctionAt(100.0,repo.GetData1);
+            ViewBag.Fit = repo.GoodnessFit*100;
             ViewBag.LastValue = repo.GetData1[repo.GetData1.Count - 1].Value;
             ViewBag.LastHour = repo.GetData1[repo.GetData1.Count - 1].Category;
             return View();
