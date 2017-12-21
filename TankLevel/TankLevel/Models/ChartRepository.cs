@@ -13,6 +13,8 @@ namespace TankLevel.Models
         private List<ChartData> repositoryData2;
         private List<ChartData> repositoryData3;
         private Tuple<double, double> f;
+        private double[] xdata;
+        private double[] ydata;
         private double goodnessFit;
 
         public ChartRepository()
@@ -206,12 +208,10 @@ namespace TankLevel.Models
             // to a array of double
             List<double> xlist = new List<double>();
             List<double> ylist = new List<double>();
-            double[] xdata;
-            double[] ydata;
 
             for (int i = storeIndex; i < data.Count; i++)
             {
-                xlist.Add(i - storeIndex);
+                xlist.Add(i-storeIndex);
                 ylist.Add(Convert.ToDouble(data[i].Value));
             }
 
@@ -226,19 +226,26 @@ namespace TankLevel.Models
             }
         }
 
-        public DateTime EvaluateFunctionAt(double x, List<ChartData> data)
+        public DateTime? EvaluateFunctionAt(double x, List<ChartData> data)
         {
-            if (f.Item2 != 0)
+            if (f != null)
             {
-                DateTime lastDate = data[data.Count - 1].Category;
-                int lastHour = lastDate.Hour;
-                double predictedHour = ((x - f.Item1) / f.Item2);
-                DateTime predictedDate = lastDate.AddHours(predictedHour-lastHour);
-                return predictedDate;
+                if (f.Item2 != 0)
+                {
+                    DateTime lastDate = data[data.Count - 1].Category;
+                    int lastIndex = xdata.Count() - 1;
+                    double predictedIndex = ((x - f.Item1) / f.Item2);
+                    DateTime predictedDate = lastDate.AddHours(predictedIndex - lastIndex);
+                    return predictedDate;
+                }
+                else
+                {
+                    throw new DivideByZeroException();
+                }
             }
             else
             {
-                throw new DivideByZeroException();
+                return null;
             }
         }
     }
